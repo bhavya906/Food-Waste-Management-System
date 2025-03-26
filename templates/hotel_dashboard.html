@@ -48,22 +48,6 @@
                     {% endif %}
                 {% endwith %}
 
-                <!-- Statistics Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h3 class="text-gray-500 text-sm font-semibold">Total Donations</h3>
-                        <p class="text-3xl font-bold text-blue-600">{{ stats.total_donations }}</p>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h3 class="text-gray-500 text-sm font-semibold">Pending Requests</h3>
-                        <p class="text-3xl font-bold text-yellow-600">{{ stats.pending_requests }}</p>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h3 class="text-gray-500 text-sm font-semibold">Accepted Requests</h3>
-                        <p class="text-3xl font-bold text-green-600">{{ stats.accepted_requests }}</p>
-                    </div>
-                </div>
-
                 <!-- Add Donation Form -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-8">
                     <h2 class="text-xl font-semibold text-gray-800 mb-4">Add New Donation</h2>
@@ -83,8 +67,14 @@
                             <input type="datetime-local" name="expiry" required
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Pickup Instructions (Optional)</label>
+                            <textarea name="pickup_instructions" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Any special instructions for pickup (e.g., 'Use back entrance', 'Ask for kitchen manager')"></textarea>
+                        </div>
                         <button type="submit" 
-                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                                class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             Add Donation
                         </button>
                     </form>

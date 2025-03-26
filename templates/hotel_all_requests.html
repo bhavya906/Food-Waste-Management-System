@@ -73,13 +73,13 @@
                                 </div>
                                 {% if request.status == 'pending' %}
                                 <div class="mt-4 flex gap-2">
-                                    <form method="POST" action="{{ url_for('handle_request', request_id=request._id, action='accept') }}" class="flex-1">
-                                        <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200">
-                                            Accept
-                                        </button>
-                                    </form>
+                                    <button onclick="handleAcceptRequest('{{ request._id }}')" 
+                                            class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200">
+                                        Accept
+                                    </button>
                                     <form method="POST" action="{{ url_for('handle_request', request_id=request._id, action='reject') }}" class="flex-1">
-                                        <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200">
+                                        <button type="submit" 
+                                                class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200">
                                             Reject
                                         </button>
                                     </form>
@@ -97,5 +97,152 @@
             </div>
         </div>
     </div>
+
+    <!-- Add OTP Modal -->
+    <div id="otpModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Verify OTP</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        An OTP has been sent to the organization's email.
+                        Please ask them to check their email and provide the OTP.
+                    </p>
+                    <input type="text" id="otpInput" 
+                           class="mt-4 px-3 py-2 border rounded-md w-full" 
+                           placeholder="Enter OTP">
+                    <div id="otpError" class="mt-2 text-red-500 text-sm hidden"></div>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="verifyOtpBtn"
+                            class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                        Verify & Accept
+                    </button>
+                    <button onclick="closeOtpModal()"
+                            class="mt-3 px-4 py-2 bg-gray-100 text-gray-700 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add JavaScript for handling OTP flow -->
+    <script>
+    let currentRequestId = null;
+
+    function showOtpModal() {
+        document.getElementById('otpModal').classList.remove('hidden');
+        document.getElementById('otpInput').value = '';
+        document.getElementById('otpError').classList.add('hidden');
+    }
+
+    function closeOtpModal() {
+        document.getElementById('otpModal').classList.add('hidden');
+        currentRequestId = null;
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('otpError');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
+
+    async function handleAcceptRequest(requestId) {
+        try {
+            currentRequestId = requestId;
+            
+            // Show loading state
+            const acceptBtn = event.target;
+            const originalText = acceptBtn.textContent;
+            acceptBtn.disabled = true;
+            acceptBtn.textContent = 'Sending OTP...';
+            
+            // Send OTP to organization's email
+            const response = await fetch(`/send_donation_request_otp/${requestId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+            
+            // Reset button state
+            acceptBtn.disabled = false;
+            acceptBtn.textContent = originalText;
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showOtpModal();
+            } else {
+                alert(data.message || 'Error sending OTP. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Network error occurred. Please check your connection and try again.');
+        }
+    }
+
+    document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
+        if (!currentRequestId) return;
+        
+        const otp = document.getElementById('otpInput').value.trim();
+        if (!otp) {
+            showError('Please enter the OTP');
+            return;
+        }
+        
+        const verifyBtn = document.getElementById('verifyOtpBtn');
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+        
+        try {
+            const response = await fetch(`/verify_donation_request_otp/${currentRequestId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `otp=${otp}`,
+                credentials: 'same-origin'
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                closeOtpModal();
+                // Show success message
+                alert('Request accepted successfully!');
+                // Refresh the page to show updated status
+                window.location.reload();
+            } else {
+                showError(data.message || 'Invalid OTP');
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Verify & Accept';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('Network error occurred. Please try again.');
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify & Accept';
+        }
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('otpModal').addEventListener('click', (e) => {
+        if (e.target.id === 'otpModal') {
+            closeOtpModal();
+        }
+    });
+
+    // Handle Enter key in OTP input
+    document.getElementById('otpInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('verifyOtpBtn').click();
+        }
+    });
+    </script>
 </body>
 </html> 

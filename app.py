@@ -1,16 +1,67 @@
-from flask import Flask, request, render_template, redirect, url_for, session, flash
+from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from datetime import datetime, timedelta
 from bson import ObjectId
 import pytz
+from functools import wraps
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import random
+import string
+import pandas as pd
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this to a secure secret key
 
+# Admin credentials (you should move these to a secure configuration file in production)
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"  # Use a strong password in production
+
+# Email configuration
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_USERNAME = "kr4785543@gmail.com"  # Replace with your email
+SMTP_PASSWORD = "qhuzwfrdagfyqemk"      # Replace with your app password
+
+def send_email(to_email, subject, body):
+    try:
+        # Create message
+        message = MIMEMultipart()
+        message["From"] = SMTP_USERNAME
+        message["To"] = to_email
+        message["Subject"] = subject
+        
+        # Add body to email
+        message.attach(MIMEText(body, "plain"))
+        
+        # Create SMTP session
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.send_message(message)
+            
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+def generate_otp():
+    return ''.join(random.choices(string.digits, k=6))
+
+# Admin authentication decorator
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_logged_in' not in session:
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # MongoDB connection
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient('mongodb+srv://kr4785543:1234567890@cluster0.220yz.mongodb.net/')
 db = client['food_management']
 
 # Collections
@@ -36,7 +87,8 @@ def hotel_register():
             'password': generate_password_hash(request.form['password']),
             'address': request.form['address'],
             'phone': request.form['phone'],
-            'created_at': datetime.now()
+            'created_at': datetime.now(),
+            'status': False  # Added status field
         }
         
         if hotels.find_one({'email': hotel_data['email']}):
@@ -60,7 +112,8 @@ def org_register():
             'address': request.form['address'],
             'phone': request.form['phone'],
             'org_type': request.form['org_type'],
-            'created_at': datetime.now()
+            'created_at': datetime.now(),
+            'status': False  # Added status field
         }
         
         if organizations.find_one({'email': org_data['email']}):
@@ -80,8 +133,10 @@ def volunteer_register():
             'full_name': request.form['full_name'],
             'email': request.form['email'],
             'password': generate_password_hash(request.form['password']),
+            'address': request.form['address'],  # Added address field
             'phone': request.form['phone'],
-            'created_at': datetime.now()
+            'created_at': datetime.now(),
+            'status': False  # Added status field
         }
         
         if volunteers.find_one({'email': volunteer_data['email']}):
@@ -115,6 +170,10 @@ def login():
                 dashboard = 'volunteer_dashboard'
             
             if user and check_password_hash(user['password'], password):
+                if not user.get('status', False):  # Check status
+                    flash('Your account is pending approval')
+                    return redirect(url_for('login'))
+                    
                 session['user_id'] = str(user['_id'])
                 session['user_type'] = user_type
                 session['email'] = user['email']
@@ -143,19 +202,6 @@ def hotel_dashboard():
             session.clear()
             return redirect(url_for('login'))
         
-        # Get statistics
-        stats = {
-            'total_donations': donations.count_documents({'hotel_id': session['user_id']}),
-            'pending_requests': donation_requests.count_documents({
-                'hotel_id': session['user_id'],
-                'status': 'pending'
-            }),
-            'accepted_requests': donation_requests.count_documents({
-                'hotel_id': session['user_id'],
-                'status': 'accepted'
-            })
-        }
-        
         # Transform recent activities for better display
         recent_activities = []
         recent_requests = donation_requests.find(
@@ -173,13 +219,33 @@ def hotel_dashboard():
         
         return render_template('hotel_dashboard.html',
                              hotel_name=hotel['hotel_name'],
-                             stats=stats,
                              recent_activities=recent_activities)
                              
     except Exception as e:
         print(f"Dashboard error: {e}")
         flash('Error loading dashboard')
         return redirect(url_for('login'))
+
+def get_nearby_places(org_city):
+    try:
+        # Read the CSV file
+        df = pd.read_csv('AP_Places_Nearby.csv')
+        
+        # Find the row for the organization's city
+        city_row = df[df['Place'].str.lower() == org_city.lower()]
+        
+        if not city_row.empty:
+            # Get nearby places as a list
+            nearby_places = city_row.iloc[0]['Nearby Places'].split(', ')
+            # Add the main city itself to the list
+            nearby_places.append(city_row.iloc[0]['Place'])
+            # Convert all places to lowercase for case-insensitive comparison
+            return [place.lower().strip() for place in nearby_places]
+    except Exception as e:
+        print(f"Error reading nearby places: {e}")
+        return []
+    
+    return []
 
 @app.route('/dashboard/organization')
 def org_dashboard():
@@ -192,24 +258,42 @@ def org_dashboard():
             session.clear()
             return redirect(url_for('login'))
         
+        # Get organization's city
+        org_city = org.get('address', '').strip()
+        nearby_places = get_nearby_places(org_city)
+        
         # Get available donations
-        available_donations = list(donations.find({'status': 'available'}))
+        all_available_donations = list(donations.find({'status': 'available'}))
+        
+        # Filter donations based on nearby places
+        available_donations = []
+        for donation in all_available_donations:
+            hotel_city = donation.get('hotel_location', {}).get('address', '').split(',')[-1].strip().lower()
+            if hotel_city in nearby_places:
+                # Add distance information to donation
+                donation['distance_info'] = 'Nearby location'
+                available_donations.append(donation)
+        
+        # Sort donations by expiry time
+        available_donations.sort(key=lambda x: x['expiry'])
         
         # Get organization's requests - handle both string and ObjectId formats
         my_requests = list(donation_requests.find({
             '$or': [
-                {'org_id': str(session['user_id'])},  # Match string format
-                {'org_id': ObjectId(session['user_id'])}  # Match ObjectId format
+                {'org_id': str(session['user_id'])},
+                {'org_id': ObjectId(session['user_id'])}
             ]
         }).sort('requested_at', -1))
         
-        print(f"Found {len(my_requests)} requests for organization {org['org_name']}")  # Debug print
+        print(f"Found {len(available_donations)} nearby donations out of {len(all_available_donations)} total donations")
         
         return render_template('org_dashboard.html',
                              org_name=org['org_name'],
                              org_type=org['org_type'],
                              available_donations=available_donations,
-                             my_requests=my_requests)
+                             my_requests=my_requests,
+                             current_city=org_city,
+                             nearby_places=nearby_places)
                              
     except Exception as e:
         print(f"Error in org dashboard: {e}")
@@ -323,7 +407,12 @@ def add_donation():
         return redirect(url_for('login'))
     
     try:
+        # Get hotel details including address
         hotel = hotels.find_one({'_id': ObjectId(session['user_id'])})
+        if not hotel:
+            flash('Hotel details not found')
+            return redirect(url_for('hotel_dashboard'))
+
         ist = pytz.timezone('Asia/Kolkata')
         donation_data = {
             'hotel_id': session['user_id'],
@@ -332,7 +421,20 @@ def add_donation():
             'quantity': int(request.form['quantity']),
             'expiry': datetime.strptime(request.form['expiry'], '%Y-%m-%dT%H:%M'),
             'status': 'available',
-            'created_at': datetime.now()
+            'created_at': datetime.now(),
+            # Adding hotel location details
+            'hotel_location': {
+                'address': hotel['address'],
+                'phone': hotel['phone'],
+                'coordinates': hotel.get('coordinates', None),  # If you have coordinates stored
+            },
+            # Adding pickup details
+            'pickup_details': {
+                'address': hotel['address'],
+                'contact_person': hotel.get('contact_person', hotel['hotel_name']),
+                'phone': hotel['phone'],
+                'instructions': request.form.get('pickup_instructions', '')
+            }
         }
         
         donations.insert_one(donation_data)
@@ -760,6 +862,384 @@ def volunteer_requests():
         print(f"Error in volunteer_requests: {e}")
         flash('Error loading requests')
         return redirect(url_for('volunteer_dashboard'))
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session['admin_logged_in'] = True
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Invalid credentials')
+            return redirect(url_for('admin_login'))
+    
+    return render_template('admin_login.html')
+
+@app.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
+    try:
+        # Fetch all entities
+        all_hotels = list(hotels.find())
+        all_organizations = list(organizations.find())
+        all_volunteers = list(volunteers.find())
+        
+        # Calculate statistics
+        stats = {
+            'hotels': {
+                'total': len(all_hotels),
+                'pending': len([h for h in all_hotels if not h.get('status', False)]),
+                'approved': len([h for h in all_hotels if h.get('status', False)])
+            },
+            'organizations': {
+                'total': len(all_organizations),
+                'pending': len([o for o in all_organizations if not o.get('status', False)]),
+                'approved': len([o for o in all_organizations if o.get('status', False)])
+            },
+            'volunteers': {
+                'total': len(all_volunteers),
+                'pending': len([v for v in all_volunteers if not v.get('status', False)]),
+                'approved': len([v for v in all_volunteers if v.get('status', False)])
+            }
+        }
+        
+        return render_template('admin_dashboard.html',
+                             datetime=datetime,
+                             hotels=all_hotels,
+                             organizations=all_organizations,
+                             volunteers=all_volunteers,
+                             stats=stats)
+                             
+    except Exception as e:
+        print(f"Admin dashboard error: {e}")
+        flash('Error loading admin dashboard')
+        return redirect(url_for('admin_login'))
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    return redirect(url_for('landing'))
+
+@app.route('/admin/hotel/<hotel_id>/approve', methods=['POST'])
+@admin_required
+def approve_hotel(hotel_id):
+    try:
+        hotels.update_one(
+            {'_id': ObjectId(hotel_id)},
+            {'$set': {'status': True}}
+        )
+        return jsonify({'success': True, 'message': 'Hotel approved successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/hotel/<hotel_id>/reject', methods=['POST'])
+@admin_required
+def reject_hotel(hotel_id):
+    try:
+        hotels.delete_one({'_id': ObjectId(hotel_id)})
+        return jsonify({'success': True, 'message': 'Hotel rejected successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/hotel/<hotel_id>/deactivate', methods=['POST'])
+@admin_required
+def deactivate_hotel(hotel_id):
+    try:
+        hotels.update_one(
+            {'_id': ObjectId(hotel_id)},
+            {'$set': {'status': False}}
+        )
+        return jsonify({'success': True, 'message': 'Hotel deactivated successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/<entity_type>/<entity_id>/approve', methods=['POST'])
+@admin_required
+def approve_entity(entity_type, entity_id):
+    try:
+        # Map entity types to their collections
+        collections = {
+            'hotel': hotels,
+            'organization': organizations,
+            'volunteer': volunteers
+        }
+        
+        if entity_type not in collections:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid entity type'
+            }), 400
+            
+        collection = collections[entity_type]
+            
+        # Validate ObjectId
+        if not ObjectId.is_valid(entity_id):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid ID format'
+            }), 400
+
+        # Update the entity status
+        result = collection.update_one(
+            {'_id': ObjectId(entity_id)},
+            {
+                '$set': {
+                    'status': True,
+                    'approved_at': datetime.now()
+                }
+            }
+        )
+        
+        if result.matched_count == 0:
+            return jsonify({
+                'success': False,
+                'message': f'{entity_type.capitalize()} not found'
+            }), 404
+            
+        if result.modified_count == 0:
+            return jsonify({
+                'success': False,
+                'message': f'{entity_type.capitalize()} already approved'
+            }), 400
+            
+        return jsonify({
+            'success': True,
+            'message': f'{entity_type.capitalize()} approved successfully'
+        })
+            
+    except Exception as e:
+        print(f"Error in approve_entity: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
+
+@app.route('/admin/<entity_type>/<entity_id>/reject', methods=['POST'])
+@admin_required
+def reject_entity(entity_type, entity_id):
+    try:
+        collections = {
+            'hotel': hotels,
+            'organization': organizations,
+            'volunteer': volunteers
+        }
+        
+        if entity_type not in collections:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid entity type'
+            }), 400
+
+        collection = collections[entity_type]
+
+        if not ObjectId.is_valid(entity_id):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid ID format'
+            }), 400
+
+        result = collection.delete_one({'_id': ObjectId(entity_id)})
+        
+        if result.deleted_count == 0:
+            return jsonify({
+                'success': False,
+                'message': f'{entity_type.capitalize()} not found'
+            }), 404
+
+        return jsonify({
+            'success': True,
+            'message': f'{entity_type.capitalize()} rejected successfully'
+        })
+            
+    except Exception as e:
+        print(f"Error in reject_entity: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
+
+@app.route('/admin/<entity_type>/<entity_id>/deactivate', methods=['POST'])
+@admin_required
+def deactivate_entity(entity_type, entity_id):
+    try:
+        collections = {
+            'hotel': hotels,
+            'organization': organizations,
+            'volunteer': volunteers
+        }
+        
+        if entity_type not in collections:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid entity type'
+            }), 400
+
+        collection = collections[entity_type]
+
+        if not ObjectId.is_valid(entity_id):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid ID format'
+            }), 400
+
+        result = collection.update_one(
+            {'_id': ObjectId(entity_id)},
+            {
+                '$set': {
+                    'status': False,
+                    'deactivated_at': datetime.now()
+                }
+            }
+        )
+        
+        if result.matched_count == 0:
+            return jsonify({
+                'success': False,
+                'message': f'{entity_type.capitalize()} not found'
+            }), 404
+
+        return jsonify({
+            'success': True,
+            'message': f'{entity_type.capitalize()} deactivated successfully'
+        })
+            
+    except Exception as e:
+        print(f"Error in deactivate_entity: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
+
+@app.route('/send_donation_request_otp/<request_id>', methods=['POST'])
+def send_donation_request_otp(request_id):
+    if 'user_id' not in session or session['user_type'] != 'hotel':
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        # Find the donation request
+        request_obj = donation_requests.find_one({'_id': ObjectId(request_id)})
+        if not request_obj:
+            return jsonify({'success': False, 'message': 'Request not found'}), 404
+
+        # Find the organization
+        org = organizations.find_one({'_id': ObjectId(request_obj['org_id'])})
+        print(org)
+        if not org:
+            return jsonify({'success': False, 'message': 'Organization not found'}), 404
+
+        # Generate OTP
+        otp = generate_otp()
+        
+        # Store OTP in the request document
+        donation_requests.update_one(
+            {'_id': ObjectId(request_id)},
+            {
+                '$set': {
+                    'verification_otp': otp,
+                    'otp_expires_at': datetime.now() + timedelta(minutes=10)  # OTP expires in 10 minutes
+                }
+            }
+        )
+
+        # Send OTP via email
+        email_subject = "Food Donation Request - OTP Verification"
+        email_body = f"""
+        Hello {org['org_name']},
+
+        Your OTP for verifying the food donation request is: {otp}
+
+        This OTP will expire in 10 minutes.
+
+        If you didn't request this OTP, please ignore this email.
+
+        Best regards,
+        Food Donation Management System
+        """
+
+        if send_email(org['email'], email_subject, email_body):
+            return jsonify({
+                'success': True,
+                'message': 'OTP sent successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to send OTP email'
+            }), 500
+
+    except Exception as e:
+        print(f"Error sending OTP: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Error processing request'
+        }), 500
+
+@app.route('/verify_donation_request_otp/<request_id>', methods=['POST'])
+def verify_donation_request_otp(request_id):
+    if 'user_id' not in session or session['user_type'] != 'hotel':
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        otp = request.form.get('otp')
+        if not otp:
+            return jsonify({
+                'success': False,
+                'message': 'OTP is required'
+            }), 400
+
+        # Find the request and verify OTP
+        request_obj = donation_requests.find_one({
+            '_id': ObjectId(request_id),
+            'verification_otp': otp,
+            'otp_expires_at': {'$gt': datetime.now()}
+        })
+
+        if not request_obj:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid or expired OTP'
+            }), 400
+
+        # Update donation request status to accepted
+        donation_requests.update_one(
+            {'_id': ObjectId(request_id)},
+            {
+                '$set': {
+                    'status': 'accepted',
+                    'updated_at': datetime.now()
+                },
+                '$unset': {
+                    'verification_otp': "",
+                    'otp_expires_at': ""
+                }
+            }
+        )
+
+        # Update the donation status
+        donations.update_one(
+            {'_id': ObjectId(request_obj['donation_id'])},
+            {
+                '$set': {
+                    'status': 'accepted',
+                    'updated_at': datetime.now()
+                }
+            }
+        )
+
+        return jsonify({
+            'success': True,
+            'message': 'OTP verified and request accepted successfully'
+        })
+
+    except Exception as e:
+        print(f"Error verifying OTP: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Error processing request'
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
