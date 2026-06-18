@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Volunteer Workflow</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Abstract Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.15;
+        }
+        /* Changed blob colors to match Volunteer theme (Green/Blueish) */
+        .blob-green { background-color: #22c55e; width: 600px; height: 600px; top: -200px; right: -100px; }
+        .blob-teal { background-color: #14b8a6; width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+        /* Swimlane Container */
+        .swimlane-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            padding: 0 4rem 2rem 4rem;
+            flex: 1;
+            position: relative;
+            z-index: 10;
+        }
+
+        .swimlane {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .swimlane-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .swimlane-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 1rem;
+        }
+
+        /* Flow Cards */
+        .flow-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border-left: 5px solid;
+            margin-bottom: 2rem;
+            position: relative;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .flow-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .card-content h4 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .card-content p {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin: 0.25rem 0 0 0;
+        }
+
+        /* Lane Specific Colors - Adjusted for Volunteer Theme */
+        .lane-1 .swimlane-title { color: #0891b2; } /* Cyan/Blue */
+        .lane-1 .swimlane-header { border-color: #cffafe; }
+        .lane-1 .flow-card { border-color: #0891b2; }
+        .lane-1 .card-icon { background-color: #ecfeff; color: #0891b2; }
+
+        .lane-2 .swimlane-title { color: #0d9488; } /* Teal */
+        .lane-2 .swimlane-header { border-color: #ccfbf1; }
+        .lane-2 .flow-card { border-color: #0d9488; }
+        .lane-2 .card-icon { background-color: #f0fdfa; color: #0d9488; }
+
+        .lane-3 .swimlane-title { color: #16a34a; } /* Green */
+        .lane-3 .swimlane-header { border-color: #dcfce7; }
+        .lane-3 .flow-card { border-color: #16a34a; }
+        .lane-3 .card-icon { background-color: #f0fdf4; color: #16a34a; }
+
+        /* SVG Connectors */
+        .connector-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .connector-path {
+            fill: none;
+            stroke: #cbd5e1;
+            stroke-width: 2;
+            stroke-dasharray: 6;
+            animation: flowDash 30s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -100; }
+        }
+        
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Blobs -->
+<div class="shape-blob blob-green"></div>
+<div class="shape-blob blob-teal"></div>
+<!-- Header -->
+<div class="relative z-10 pt-10 px-16 pb-6">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-teal-500 rounded-full"></div>
+<p class="text-teal-600 font-bold uppercase tracking-wider text-sm">Role Workflow</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+            Volunteer <span class="text-teal-500">Flow</span>
+</h1>
+</div>
+<!-- Swimlane Diagram -->
+<div class="swimlane-container">
+<!-- SVG Connections Layer -->
+<svg class="connector-svg">
+<defs>
+<marker id="arrow" markerheight="10" markerunits="strokeWidth" markerwidth="10" orient="auto" refx="9" refy="3">
+<path d="M0,0 L0,6 L9,3 z" fill="#cbd5e1"></path>
+</marker>
+</defs>
+<!-- Lane 1 (Card 1 -> 2) -->
+<path d="M 195 240 L 195 280" marker-end="url(#arrow)" stroke="#cbd5e1" stroke-width="2"></path>
+<!-- Lane 1 (Card 2) -> Lane 2 (Card 3) -->
+<path class="connector-path" d="M 355 330 L 380 330 L 380 200 L 450 200" marker-end="url(#arrow)"></path>
+<!-- Lane 2 (Card 3 -> 4) -->
+<path d="M 600 240 L 600 280" marker-end="url(#arrow)" stroke="#cbd5e1" stroke-width="2"></path>
+<!-- Lane 2 (Card 4) -> Lane 3 (Card 5) -->
+<path class="connector-path" d="M 760 330 L 790 330 L 790 200 L 860 200" marker-end="url(#arrow)"></path>
+<!-- Lane 3 (Vertical Flow) -->
+<path d="M 1000 240 L 1000 270" marker-end="url(#arrow)" stroke="#cbd5e1" stroke-width="2"></path>
+<path d="M 1000 350 L 1000 380" marker-end="url(#arrow)" stroke="#cbd5e1" stroke-width="2"></path>
+</svg>
+<!-- Lane 1: Access -->
+<div class="swimlane lane-1">
+<div class="swimlane-header">
+<div class="swimlane-title">1. Access &amp; Setup</div>
+</div>
+<!-- Step 1: Login -->
+<div class="flow-card" style="margin-top: 1rem;">
+<div class="card-icon">
+<i class="fa-solid fa-right-to-bracket"></i>
+</div>
+<div class="card-content">
+<h4>Volunteer Login</h4>
+<p>Enter credentials</p>
+</div>
+</div>
+<!-- Step 2: Dashboard -->
+<div class="flow-card" style="margin-top: 2rem;">
+<div class="card-icon">
+<i class="fa-solid fa-gauge-high"></i>
+</div>
+<div class="card-content">
+<h4>Dashboard</h4>
+<p>Overview of urgent tasks</p>
+</div>
+</div>
+</div>
+<!-- Lane 2: Discovery -->
+<div class="swimlane lane-2">
+<div class="swimlane-header">
+<div class="swimlane-title">2. Discovery &amp; Action</div>
+</div>
+<!-- Step 3: Urgent Donations -->
+<div class="flow-card" style="margin-top: 1rem;">
+<div class="card-icon">
+<i class="fa-solid fa-bell"></i>
+</div>
+<div class="card-content">
+<h4>Urgent Donations</h4>
+<p>View items nearing expiry</p>
+</div>
+</div>
+<!-- Step 4: Request Delivery -->
+<div class="flow-card" style="margin-top: 2rem;">
+<div class="card-icon">
+<i class="fa-solid fa-hand-holding-hand"></i>
+</div>
+<div class="card-content">
+<h4>Request Delivery</h4>
+<p>Commit to pick up &amp; deliver</p>
+</div>
+</div>
+</div>
+<!-- Lane 3: Fulfillment -->
+<div class="swimlane lane-3">
+<div class="swimlane-header">
+<div class="swimlane-title">3. Fulfillment</div>
+</div>
+<!-- Step 5: Track Status -->
+<div class="flow-card" style="margin-top: 1rem;">
+<div class="card-icon">
+<i class="fa-solid fa-location-dot"></i>
+</div>
+<div class="card-content">
+<h4>Track Status</h4>
+<p>Monitor delivery route</p>
+</div>
+</div>
+<!-- Step 6: Support Pickup -->
+<div class="flow-card">
+<div class="card-icon">
+<i class="fa-solid fa-truck-fast"></i>
+</div>
+<div class="card-content">
+<h4>Pickup &amp; Deliver</h4>
+<p>Before expiry time</p>
+</div>
+</div>
+<!-- Step 7: Completion -->
+<div class="flow-card bg-green-50 border-green-200 shadow-none">
+<div class="card-icon text-green-600 bg-white">
+<i class="fa-solid fa-circle-check"></i>
+</div>
+<div class="card-content">
+<h4 class="text-green-800">Task Completed</h4>
+<p class="text-green-600">Successful delivery</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Strip -->
+<div class="absolute bottom-0 w-full h-2 bg-gradient-to-r from-cyan-300 via-teal-500 to-green-500"></div>
+</div>
+</body>
+</html>

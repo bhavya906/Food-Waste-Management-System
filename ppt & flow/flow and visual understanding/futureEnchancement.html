@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Future Enhancements</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+
+        /* Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.1;
+        }
+        .blob-purple { background-color: #a855f7; width: 600px; height: 600px; top: -200px; right: -200px; }
+        .blob-blue { background-color: #3b82f6; width: 500px; height: 500px; bottom: -100px; left: -100px; }
+
+        /* Roadmap Container */
+        .roadmap-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            padding: 0 4rem 2rem 4rem;
+            flex: 1;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Timeline Connector Line */
+        .timeline-line {
+            position: absolute;
+            top: 48px; /* Aligns with the dots */
+            left: 4rem;
+            right: 4rem;
+            height: 4px;
+            background-color: #e2e8f0;
+            z-index: 0;
+            border-radius: 4px;
+        }
+
+        /* Phase Column */
+        .phase-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Timeline Dot */
+        .timeline-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: white;
+            border: 4px solid;
+            margin-bottom: 2rem;
+            margin-top: 2rem; /* Space for phase label above if needed, here we put label above dot */
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Phase Label */
+        .phase-label {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Feature Card */
+        .feature-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.25rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #e2e8f0;
+        }
+
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Card Typography */
+        .feature-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-desc {
+            font-size: 0.75rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Priority Tag */
+        .priority-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+            align-self: flex-start;
+        }
+
+        /* Color Themes */
+        .theme-blue { color: #2563eb; border-color: #3b82f6; }
+        .theme-purple { color: #7c3aed; border-color: #8b5cf6; }
+        .theme-orange { color: #ea580c; border-color: #f97316; }
+        .theme-green { color: #059669; border-color: #10b981; }
+
+        .bg-blue-light { background-color: #eff6ff; color: #2563eb; }
+        .bg-purple-light { background-color: #f5f3ff; color: #7c3aed; }
+        .bg-orange-light { background-color: #fff7ed; color: #ea580c; }
+        .bg-green-light { background-color: #ecfdf5; color: #059669; }
+
+        .tag-high { background-color: #fee2e2; color: #991b1b; }
+        .tag-med { background-color: #fef3c7; color: #92400e; }
+        .tag-low { background-color: #f1f5f9; color: #475569; }
+
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Elements -->
+<div class="shape-blob blob-purple"></div>
+<div class="shape-blob blob-blue"></div>
+<!-- Header -->
+<div class="relative z-20 pt-8 px-16 pb-2">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-purple-600 rounded-full"></div>
+<p class="text-purple-600 font-bold uppercase tracking-wider text-sm">Product Roadmap</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+                Future <span class="text-purple-600">Enhancements</span>
+</h1>
+<p class="text-gray-500 mt-2 text-lg">Upcoming features to expand reach, efficiency, and intelligence.</p>
+</div>
+<!-- Roadmap Content -->
+<div class="roadmap-container mt-8">
+<!-- Connecting Line -->
+<div class="timeline-line"></div>
+<!-- Phase 1: Accessibility -->
+<div class="phase-col">
+<div class="phase-label text-blue-600">Phase 1: Access</div>
+<div class="timeline-dot border-blue-500"></div>
+<!-- Card 1 -->
+<div class="feature-card border-l-4 border-blue-500">
+<div class="icon-box bg-blue-light">
+<i class="fa-solid fa-mobile-screen"></i>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="feature-title">Mobile Apps</h3>
+</div>
+<p class="feature-desc">Native Android &amp; iOS apps for convenient on-the-go access for all roles.</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="feature-card border-l-4 border-blue-500">
+<div class="icon-box bg-blue-light">
+<i class="fa-solid fa-language"></i>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="feature-title">Multilingual UI</h3>
+</div>
+<p class="feature-desc">Localization support to serve diverse communities effectively.</p>
+</div>
+</div>
+</div>
+<!-- Phase 2: Engagement -->
+<div class="phase-col">
+<div class="phase-label text-purple-600">Phase 2: Engage</div>
+<div class="timeline-dot border-purple-500"></div>
+<!-- Card 3 -->
+<div class="feature-card border-l-4 border-purple-500">
+<div class="icon-box bg-purple-light">
+<i class="fa-solid fa-bell"></i>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="feature-title">Push Notifications</h3>
+</div>
+<p class="feature-desc">Instant alerts for new donations and urgent pickup requests.</p>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="feature-card border-l-4 border-purple-500">
+<div class="icon-box bg-purple-light">
+<i class="fa-solid fa-qrcode"></i>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="feature-title">QR Verification</h3>
+</div>
+<p class="feature-desc">Scan-to-verify system to speed up the handover process.</p>
+</div>
+</div>
+</div>
+<!-- Phase 3: Logistics -->
+<div class="phase-col">
+<div class="phase-label text-orange-600">Phase 3: Logistics</div>
+<div class="timeline-dot border-orange-500"></div>
+<!-- Card 5 -->
+<div class="feature-card border-l-4 border-orange-500">
+<div class="icon-box bg-orange-light">
+<i class="fa-solid fa-map-location-dot"></i>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="feature-title">Maps Integration</h3>
+</div>
+<p class="feature-desc">Interactive visual maps showing donation clusters and hotspots.</p>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="feature-card border-l-4 border-orange-500">
+<div class="icon-box bg-orange-light">
+<i class="fa-solid fa-route"></i>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="feature-title">Route Optimization</h3>
+</div>
+<p class="feature-desc">Smart routing for volunteers to pick up multiple donations efficiently.</p>
+</div>
+</div>
+</div>
+<!-- Phase 4: Intelligence -->
+<div class="phase-col">
+<div class="phase-label text-green-600">Phase 4: Data</div>
+<div class="timeline-dot border-green-500"></div>
+<!-- Card 7 -->
+<div class="feature-card border-l-4 border-green-500">
+<div class="icon-box bg-green-light">
+<i class="fa-solid fa-chart-line"></i>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="feature-title">Analytics Dashboard</h3>
+</div>
+<p class="feature-desc">Advanced insights on wastage reduction and donation trends.</p>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="feature-card border-l-4 border-green-500">
+<div class="icon-box bg-green-light">
+<i class="fa-solid fa-temperature-low"></i>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="feature-title">Temp Logging</h3>
+</div>
+<p class="feature-desc">IoT integration to track food temperature during transit for safety.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<div class="absolute bottom-0 w-full bg-white border-t border-gray-200 py-3 px-16 flex justify-between items-center text-xs text-gray-500">
+<div class="flex items-center">
+<i class="fa-solid fa-code-branch mr-2 text-purple-500"></i> Continuous Integration
+            </div>
+<div>
+                Planned Timeline: 2024 - 2025
+            </div>
+</div>
+</div>
+</body>
+</html>

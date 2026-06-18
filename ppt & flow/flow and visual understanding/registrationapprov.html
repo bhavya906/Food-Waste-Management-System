@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Registration &amp; Approval Process</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Abstract Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.1;
+        }
+        .blob-blue { background-color: #3b82f6; width: 600px; height: 600px; top: -200px; left: -100px; }
+        .blob-indigo { background-color: #6366f1; width: 500px; height: 500px; bottom: -150px; right: -100px; }
+
+        /* Timeline Container */
+        .timeline-wrapper {
+            position: relative;
+            padding: 2rem 4rem;
+            margin-top: 2rem;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Connecting Line */
+        .timeline-line {
+            position: absolute;
+            top: 35%; /* Align with the icons */
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background-color: #e2e8f0;
+            z-index: 0;
+            border-radius: 4px;
+        }
+
+        .timeline-progress {
+            position: absolute;
+            top: 35%;
+            left: 10%;
+            width: 75%; /* Represent completed flow */
+            height: 4px;
+            background-color: #3b82f6; /* Blue progress */
+            z-index: 0;
+            border-radius: 4px;
+            opacity: 0.3;
+        }
+
+        /* Steps Grid */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Step Icon Circle */
+        .step-icon-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            border: 4px solid #fff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .step-item:hover .step-icon-circle {
+            transform: scale(1.1);
+        }
+
+        /* Step Number Badge */
+        .step-number {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 28px;
+            height: 28px;
+            background-color: #1e293b;
+            color: white;
+            border-radius: 50%;
+            font-size: 0.875rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        /* Content Card */
+        .step-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-item:hover .step-card {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #cbd5e1;
+        }
+
+        /* Specific Colors */
+        .step-1 .step-icon-circle { color: #2563eb; border-color: #bfdbfe; } 
+        .step-1 .step-number { background-color: #2563eb; }
+        
+        .step-2 .step-icon-circle { color: #ea580c; border-color: #fed7aa; }
+        .step-2 .step-number { background-color: #ea580c; }
+        
+        .step-3 .step-icon-circle { color: #16a34a; border-color: #bbf7d0; }
+        .step-3 .step-number { background-color: #16a34a; }
+        
+        .step-4 .step-icon-circle { color: #7c3aed; border-color: #ddd6fe; }
+        .step-4 .step-number { background-color: #7c3aed; }
+
+        /* Arrow connecting cards visually */
+        .arrow-connector {
+            position: absolute;
+            top: 50%;
+            right: -1.5rem;
+            font-size: 1.25rem;
+            color: #cbd5e1;
+            z-index: 5;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Blobs -->
+<div class="shape-blob blob-blue"></div>
+<div class="shape-blob blob-indigo"></div>
+<!-- Header -->
+<div class="relative z-10 pt-10 px-16 pb-4">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-blue-600 rounded-full"></div>
+<p class="text-blue-600 font-bold uppercase tracking-wider text-sm">Onboarding Flow</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+            Registration &amp; <span class="text-blue-600">Approval</span>
+</h1>
+<p class="text-gray-500 mt-2 text-lg max-w-3xl">
+            To ensure the safety and authenticity of the platform, all users must undergo a strict verification process before accessing the system.
+        </p>
+</div>
+<!-- Timeline Section -->
+<div class="timeline-wrapper">
+<!-- Lines -->
+<div class="timeline-line"></div>
+<!-- Steps -->
+<div class="steps-grid">
+<!-- Step 1 -->
+<div class="step-item step-1">
+<div class="step-icon-circle bg-blue-50">
+<i class="fa-solid fa-file-pen"></i>
+<div class="step-number">1</div>
+</div>
+<div class="step-card">
+<h3 class="font-heading font-bold text-lg text-gray-800 mb-2">User Registration</h3>
+<p class="text-sm text-gray-500 mb-3">Hotel / NGO / Volunteer</p>
+<p class="text-xs text-gray-600 leading-relaxed bg-blue-50 p-2 rounded-lg">
+                    User submits details (Name, Address, License/ID) via the signup form.
+                </p>
+<div class="mt-3 flex items-center justify-center text-xs font-semibold text-blue-600">
+<span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                    Status: Pending
+                </div>
+</div>
+<!-- Arrow to next -->
+<i class="fa-solid fa-angle-right arrow-connector text-gray-300"></i>
+</div>
+<!-- Step 2 -->
+<div class="step-item step-2">
+<div class="step-icon-circle bg-orange-50">
+<i class="fa-solid fa-magnifying-glass-chart"></i>
+<div class="step-number">2</div>
+</div>
+<div class="step-card">
+<h3 class="font-heading font-bold text-lg text-gray-800 mb-2">Admin Review</h3>
+<p class="text-sm text-gray-500 mb-3">Verification Process</p>
+<p class="text-xs text-gray-600 leading-relaxed bg-orange-50 p-2 rounded-lg">
+                    Admin receives notification and manually validates submitted documents and profile authenticity.
+                </p>
+<div class="mt-3 flex items-center justify-center text-xs font-semibold text-orange-600">
+<i class="fa-regular fa-clock mr-1"></i>
+                    Manual Check
+                </div>
+</div>
+<!-- Arrow to next -->
+<i class="fa-solid fa-angle-right arrow-connector text-gray-300"></i>
+</div>
+<!-- Step 3 -->
+<div class="step-item step-3">
+<div class="step-icon-circle bg-green-50">
+<i class="fa-solid fa-check-double"></i>
+<div class="step-number">3</div>
+</div>
+<div class="step-card">
+<h3 class="font-heading font-bold text-lg text-gray-800 mb-2">Account Approval</h3>
+<p class="text-sm text-gray-500 mb-3">Status Update</p>
+<p class="text-xs text-gray-600 leading-relaxed bg-green-50 p-2 rounded-lg">
+                    Upon verification, Admin approves the account. System sends an approval email to the user.
+                </p>
+<div class="mt-3 flex items-center justify-center text-xs font-semibold text-green-600">
+<i class="fa-solid fa-circle-check mr-1"></i>
+                    Approved
+                </div>
+</div>
+<!-- Arrow to next -->
+<i class="fa-solid fa-angle-right arrow-connector text-gray-300"></i>
+</div>
+<!-- Step 4 -->
+<div class="step-item step-4">
+<div class="step-icon-circle bg-purple-50">
+<i class="fa-solid fa-key"></i>
+<div class="step-number">4</div>
+</div>
+<div class="step-card">
+<h3 class="font-heading font-bold text-lg text-gray-800 mb-2">Access Granted</h3>
+<p class="text-sm text-gray-500 mb-3">Login Enabled</p>
+<p class="text-xs text-gray-600 leading-relaxed bg-purple-50 p-2 rounded-lg">
+                    User can now log in to their specific Role Dashboard and start using platform features.
+                </p>
+<div class="mt-3 flex items-center justify-center text-xs font-semibold text-purple-600">
+<i class="fa-solid fa-lock-open mr-1"></i>
+                    System Live
+                </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Strip -->
+<div class="absolute bottom-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500"></div>
+</div>
+</body>
+</html>

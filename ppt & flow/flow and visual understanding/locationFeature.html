@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Location-Based Features</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+            opacity: 0.1;
+        }
+        .blob-green { background-color: #10b981; width: 600px; height: 600px; top: -200px; right: -100px; }
+        .blob-teal { background-color: #14b8a6; width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+        /* Content Layout */
+        .content-wrapper {
+            display: flex;
+            height: 100%;
+            padding: 0 4rem 3rem 4rem;
+            gap: 3rem;
+            z-index: 10;
+        }
+
+        .features-column {
+            flex: 0 0 40%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .map-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Feature Cards */
+        .feature-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 16px;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: flex-start;
+            border: 1px solid #f1f5f9;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+            border-color: #e2e8f0;
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .feature-content h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.1rem;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .feature-content p {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Map Container */
+        .map-frame {
+            background: white;
+            padding: 1rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            height: 450px;
+            width: 100%;
+            position: relative;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        #map-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            background-color: #e6fcf5;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Mock Map Elements (CSS Only visualization instead of heavy JS map) */
+        .map-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(#cbd5e1 1px, transparent 1px),
+                linear-gradient(90deg, #cbd5e1 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.2;
+        }
+        
+        .map-road {
+            position: absolute;
+            background-color: #fff;
+            opacity: 0.6;
+        }
+
+        /* Map Pins */
+        .map-pin {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            transform: translate(-50%, -100%);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        .pin-head {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .pin-icon {
+            transform: rotate(45deg);
+            font-size: 12px;
+            color: white;
+        }
+
+        .pin-pulse {
+            width: 20px;
+            height: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 50%;
+            margin-top: -5px;
+            filter: blur(2px);
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .pin-hotel .pin-head { background-color: #ef4444; } /* Red for Donor */
+        .pin-ngo .pin-head { background-color: #3b82f6; } /* Blue for Receiver */
+        .pin-volunteer .pin-head { background-color: #10b981; } /* Green for Helper */
+
+        .pin-label {
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #475569;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 5px;
+            white-space: nowrap;
+        }
+
+        /* Feature Colors */
+        .feat-1 .icon-box { background-color: #ecfdf5; color: #10b981; }
+        .feat-2 .icon-box { background-color: #eff6ff; color: #3b82f6; }
+        .feat-3 .icon-box { background-color: #fff7ed; color: #f97316; }
+        .feat-4 .icon-box { background-color: #f3e8ff; color: #a855f7; }
+
+        /* Floating UI Elements on Map */
+        .map-ui-search {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            z-index: 30;
+        }
+
+        .map-ui-filter {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 30;
+        }
+
+        .filter-chip {
+            background: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .filter-chip.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -100%); }
+            50% { transform: translate(-50%, -110%); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(0.8); opacity: 0.2; }
+        }
+
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Elements -->
+<div class="shape-blob blob-green"></div>
+<div class="shape-blob blob-teal"></div>
+<!-- Header -->
+<div class="relative z-20 pt-8 px-16 pb-2">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-green-500 rounded-full"></div>
+<p class="text-green-600 font-bold uppercase tracking-wider text-sm">Geospatial Intelligence</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+            Location-Based <span class="text-green-600">Features</span>
+</h1>
+<p class="text-gray-500 mt-2 text-lg">Optimizing logistics to minimize travel time and food spoilage</p>
+</div>
+<!-- Content Area -->
+<div class="content-wrapper">
+<!-- Left Column: Features List -->
+<div class="features-column">
+<!-- Feature 1 -->
+<div class="feature-card feat-1">
+<div class="icon-box">
+<i class="fa-solid fa-map-location-dot"></i>
+</div>
+<div class="feature-content">
+<h3>Nearby Donations</h3>
+<p>Interactive map showing available food donations within a configurable radius (e.g., 5km).</p>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="feature-card feat-2">
+<div class="icon-box">
+<i class="fa-solid fa-filter"></i>
+</div>
+<div class="feature-content">
+<h3>Smart Filtering</h3>
+<p>Filter by distance, food type, quantity, and pickup window to find relevant matches.</p>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="feature-card feat-3">
+<div class="icon-box">
+<i class="fa-solid fa-hourglass-half"></i>
+</div>
+<div class="feature-content">
+<h3>Urgency Sorting</h3>
+<p>Prioritizes listings nearing expiry to ensure food is claimed before it goes to waste.</p>
+</div>
+</div>
+<!-- Feature 4 -->
+<div class="feature-card feat-4">
+<div class="icon-box">
+<i class="fa-solid fa-people-carry-box"></i>
+</div>
+<div class="feature-content">
+<h3>Volunteer Matching</h3>
+<p>Automatically suggests nearby volunteers for pickup based on current location data.</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Map Visualization -->
+<div class="map-column">
+<div class="map-frame">
+<div id="map-placeholder">
+<!-- Stylized Map Background -->
+<div class="bg-blue-50 w-full h-full relative overflow-hidden">
+<!-- Roads -->
+<div class="map-road" style="width: 100%; height: 12px; top: 40%;"></div>
+<div class="map-road" style="width: 100%; height: 12px; top: 70%;"></div>
+<div class="map-road" style="height: 100%; width: 12px; left: 30%;"></div>
+<div class="map-road" style="height: 100%; width: 12px; left: 60%;"></div>
+<div class="map-road" style="width: 120%; height: 12px; top: 50%; left: -10%; transform: rotate(25deg);"></div>
+<!-- UI Overlay -->
+<div class="map-ui-search">
+<i class="fa-solid fa-magnifying-glass text-gray-400 mr-2"></i>
+<span class="text-sm text-gray-500">Search area...</span>
+</div>
+<div class="map-ui-filter">
+<div class="filter-chip active">All</div>
+<div class="filter-chip">Urgent</div>
+<div class="filter-chip">Veg</div>
+<div class="filter-chip">&lt; 5km</div>
+</div>
+<!-- Pins -->
+<!-- Hotel Pin (Donor) -->
+<div class="map-pin pin-hotel" style="top: 45%; left: 35%;">
+<div class="pin-head">
+<i class="fa-solid fa-utensils pin-icon"></i>
+</div>
+<div class="pin-pulse"></div>
+<div class="pin-label">Grand Hotel (Donor)</div>
+</div>
+<!-- NGO Pin (Receiver) -->
+<div class="map-pin pin-ngo" style="top: 65%; left: 65%;">
+<div class="pin-head">
+<i class="fa-solid fa-hand-holding-heart pin-icon"></i>
+</div>
+<div class="pin-pulse"></div>
+<div class="pin-label">Hope Foundation</div>
+</div>
+<!-- Volunteer Pin -->
+<div class="map-pin pin-volunteer" style="top: 50%; left: 55%; animation-delay: 1s;">
+<div class="pin-head">
+<i class="fa-solid fa-bicycle pin-icon"></i>
+</div>
+<div class="pin-pulse"></div>
+<div class="pin-label">Volunteer John</div>
+</div>
+<!-- Another Hotel -->
+<div class="map-pin pin-hotel" style="top: 30%; left: 75%; animation-delay: 0.5s;">
+<div class="pin-head">
+<i class="fa-solid fa-utensils pin-icon"></i>
+</div>
+<div class="pin-pulse"></div>
+<div class="pin-label">City Bakery</div>
+</div>
+<!-- Route Line (SVG) -->
+<svg class="absolute inset-0 pointer-events-none" style="z-index: 15;">
+<path d="M 450 200 Q 550 220 700 220 T 840 290" fill="none" stroke="#10b981" stroke-dasharray="5,5" stroke-width="3"></path>
+</svg>
+<!-- Distance Badge -->
+<div class="absolute bg-white px-2 py-1 rounded shadow text-[10px] font-bold text-gray-600 border border-gray-200" style="top: 48%; left: 45%;">
+                                        2.5 km
+                                    </div>
+</div>
+</div>
+</div>
+<!-- Map Legend -->
+<div class="flex justify-center mt-4 gap-6">
+<div class="flex items-center text-xs font-medium text-gray-500">
+<span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>Donor
+                </div>
+<div class="flex items-center text-xs font-medium text-gray-500">
+<span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>NGO
+                </div>
+<div class="flex items-center text-xs font-medium text-gray-500">
+<span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>Volunteer
+                </div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

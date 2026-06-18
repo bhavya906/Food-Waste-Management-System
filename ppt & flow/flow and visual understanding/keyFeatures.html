@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Key Features &amp; Capabilities</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.1;
+        }
+        .blob-1 { background-color: #3b82f6; width: 600px; height: 600px; top: -200px; right: -200px; }
+        .blob-2 { background-color: #10b981; width: 500px; height: 500px; bottom: -100px; left: -100px; }
+
+        /* Grid Layout */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 1.5rem;
+            padding: 1rem 4rem 3rem 4rem;
+            flex: 1;
+            z-index: 10;
+        }
+
+        /* Feature Card */
+        .feature-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: #e2e8f0;
+        }
+
+        /* Icon Styling */
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .icon-box {
+            transform: scale(1.1);
+        }
+
+        /* Icon Colors */
+        .icon-blue { background-color: #eff6ff; color: #3b82f6; }
+        .icon-purple { background-color: #f3e8ff; color: #a855f7; }
+        .icon-green { background-color: #ecfdf5; color: #10b981; }
+        .icon-orange { background-color: #fff7ed; color: #f97316; }
+        .icon-red { background-color: #fef2f2; color: #ef4444; }
+        .icon-cyan { background-color: #ecfeff; color: #06b6d4; }
+        .icon-indigo { background-color: #e0e7ff; color: #6366f1; }
+        .icon-pink { background-color: #fdf2f8; color: #ec4899; }
+
+        /* Text Styles */
+        .card-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: #64748b;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Decorative dots */
+        .dot-pattern {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+            z-index: 0;
+        }
+        .dots-top { top: 100px; left: 40px; }
+        .dots-bottom { bottom: 40px; right: 40px; }
+
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Elements -->
+<div class="shape-blob blob-1"></div>
+<div class="shape-blob blob-2"></div>
+<div class="dot-pattern dots-top"></div>
+<div class="dot-pattern dots-bottom"></div>
+<!-- Header -->
+<div class="relative z-20 pt-8 px-16 pb-2">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-blue-600 rounded-full"></div>
+<p class="text-blue-600 font-bold uppercase tracking-wider text-sm">System Capabilities</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+                Key <span class="text-blue-600">Features</span>
+</h1>
+<p class="text-gray-500 mt-2 text-lg">Comprehensive tools designed for efficiency, security, and impact.</p>
+</div>
+<!-- Features Grid -->
+<div class="features-grid">
+<!-- Feature 1: Role-Based Login -->
+<div class="feature-card">
+<div class="icon-box icon-blue">
+<i class="fa-solid fa-users-viewfinder"></i>
+</div>
+<h3 class="card-title">Role-Based Access</h3>
+<p class="card-desc">Secure, separate dashboards for Hotels, NGOs, Volunteers, and Admins to ensure data privacy and relevant tools.</p>
+</div>
+<!-- Feature 2: Admin Approval -->
+<div class="feature-card">
+<div class="icon-box icon-purple">
+<i class="fa-solid fa-user-shield"></i>
+</div>
+<h3 class="card-title">Admin Approval</h3>
+<p class="card-desc">Manual verification system for all new registrations to maintain platform integrity and user safety.</p>
+</div>
+<!-- Feature 3: OTP Verification -->
+<div class="feature-card">
+<div class="icon-box icon-green">
+<i class="fa-solid fa-key"></i>
+</div>
+<h3 class="card-title">OTP Verification</h3>
+<p class="card-desc">End-to-end security token system that validates food handover between donor and receiver physically.</p>
+</div>
+<!-- Feature 4: Location Filtering -->
+<div class="feature-card">
+<div class="icon-box icon-cyan">
+<i class="fa-solid fa-map-location-dot"></i>
+</div>
+<h3 class="card-title">Location Filtering</h3>
+<p class="card-desc">Geospatial filtering allowing NGOs to discover donations within a specific radius to reduce travel time.</p>
+</div>
+<!-- Feature 5: Urgent Alerts -->
+<div class="feature-card">
+<div class="icon-box icon-red">
+<i class="fa-solid fa-bell"></i>
+</div>
+<h3 class="card-title">Urgent Alerts</h3>
+<p class="card-desc">Automated notifications for food items nearing their expiry time to prioritize immediate distribution.</p>
+</div>
+<!-- Feature 6: Real-Time Tracking -->
+<div class="feature-card">
+<div class="icon-box icon-indigo">
+<i class="fa-solid fa-timeline"></i>
+</div>
+<h3 class="card-title">Real-Time Status</h3>
+<p class="card-desc">Live status updates (Available → Requested → Accepted → Completed) visible to all relevant stakeholders.</p>
+</div>
+<!-- Feature 7: Donation Management -->
+<div class="feature-card">
+<div class="icon-box icon-orange">
+<i class="fa-solid fa-list-check"></i>
+</div>
+<h3 class="card-title">Donation Control</h3>
+<p class="card-desc">Intuitive tools for hotels to add, modify, or delete listings and manage incoming requests efficiently.</p>
+</div>
+<!-- Feature 8: Delivery Tracking -->
+<div class="feature-card">
+<div class="icon-box icon-pink">
+<i class="fa-solid fa-truck-fast"></i>
+</div>
+<h3 class="card-title">Delivery Tracking</h3>
+<p class="card-desc">Dedicated workflow for volunteers to accept pickup tasks and track the delivery journey to the NGO.</p>
+</div>
+</div>
+</div>
+</body>
+</html>

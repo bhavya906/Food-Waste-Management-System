@@ -1,0 +1,6 @@
+flask
+pymongo
+dnspython
+werkzeug
+pytz
+pandas

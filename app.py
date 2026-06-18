@@ -1,3 +1,4 @@
+
 from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -311,87 +312,66 @@ def volunteer_dashboard():
         
         volunteer = volunteers.find_one({'_id': ObjectId(session['user_id'])})
         if not volunteer:
-            print("Volunteer not found!")
-            session.clear()
             return redirect(url_for('login'))
-            
-        print(f"Volunteer found: {volunteer['full_name']}")
-
-        # Get current time in Indian timezone
-        india_tz = pytz.timezone('Asia/Kolkata')
-        current_time = datetime.now(india_tz)
-        naive_current_time_ist = current_time.replace(tzinfo=None)  # For naive comparison in IST
         
-        print(f"Current time (IST): {current_time}")
-        print(f"Current time (IST naive): {naive_current_time_ist}")
+        current_time = datetime.now()
         
-        # Calculate the time window (next 30 minutes)
-        thirty_mins_later_ist = current_time + timedelta(minutes=30)
-        naive_thirty_mins_later_ist = thirty_mins_later_ist.replace(tzinfo=None)  # For naive comparison in IST
-        print(f"30 mins later (IST): {thirty_mins_later_ist}")
-        print(f"30 mins later (IST naive): {naive_thirty_mins_later_ist}")
-
-        # CRITICAL DEBUG: First check what's in the database overall
-        print("Checking all donations in the database:")
-        all_donations = list(donations.find())
-        print(f"Total donations in database: {len(all_donations)}")
-        for d in all_donations:
-            print(f"ID: {d['_id']}, Type: {d['food_type']}, Status: {d['status']}, Expiry: {d['expiry']}")
+        # Get available donations
+        pipeline = [
+            {
+                '$match': {
+                    'status': 'available',
+                    'expiry': {'$gt': current_time}
+                }
+            },
+            {
+                # Lookup hotel details to get phone number
+                '$lookup': {
+                    'from': 'hotels',
+                    'let': {'hotelId': {'$toObjectId': '$hotel_id'}},
+                    'pipeline': [
+                        {
+                            '$match': {
+                                '$expr': {'$eq': ['$_id', '$$hotelId']}
+                            }
+                        }
+                    ],
+                    'as': 'hotel_details'
+                }
+            },
+            {
+                '$unwind': '$hotel_details'
+            },
+            {
+                '$addFields': {
+                    'hotel_phone': '$hotel_details.phone',
+                    'minutes_until_expiry': {
+                        '$divide': [
+                            {'$subtract': ['$expiry', current_time]},
+                            60000  # Convert milliseconds to minutes
+                        ]
+                    }
+                }
+            }
+        ]
         
-        # Check only available donations
-        print("\nChecking available donations:")
-        available_donations = list(donations.find({'status': 'available'}))
-        print(f"Available donations: {len(available_donations)}")
-        for d in available_donations:
-            print(f"ID: {d['_id']}, Type: {d['food_type']}, Expiry: {d['expiry']}")
+        urgent_donations = list(donations.aggregate(pipeline))
         
-        # Find urgent donations - available items expiring within 30 minutes
-        urgent_donations = []
-        
-        for donation in available_donations:
-            expiry = donation['expiry']
-            print(f"Processing donation: {donation['_id']}, Type: {donation['food_type']}, Expiry: {expiry}, Type: {type(expiry)}")
-            
-            # Is expiry a datetime object?
-            if isinstance(expiry, datetime):
-                # Assume the naive datetime in the database is already in IST
-                # Compare directly with our naive IST times
-                print(f"  IST comparison: {naive_current_time_ist} <= {expiry} <= {naive_thirty_mins_later_ist}")
-                if naive_current_time_ist <= expiry <= naive_thirty_mins_later_ist:
-                    # Calculate minutes until expiry
-                    time_diff = expiry - naive_current_time_ist
-                    minutes_left = time_diff.total_seconds() / 60
-                    donation['minutes_until_expiry'] = minutes_left
-                    
-                    # Add to urgent donations
-                    urgent_donations.append(donation)
-                    print(f"  ADDED AS URGENT: Minutes left: {minutes_left}")
-                else:
-                    print(f"  NOT URGENT: Outside time window")
-            else:
-                print(f"  WARNING: Expiry is not a datetime object! Type: {type(expiry)}")
+        # Filter donations expiring within 2 hours
+        urgent_donations = [d for d in urgent_donations if d.get('minutes_until_expiry', 0) <= 120]
         
         # Sort by most urgent first
         urgent_donations.sort(key=lambda x: x.get('minutes_until_expiry', float('inf')))
         
-        print(f"Urgent donations found: {len(urgent_donations)}")
-        for d in urgent_donations:
-            # All times are already in IST, so we don't need to convert for display
-            print(f"ID: {d['_id']}, Type: {d['food_type']}, Expiry: {d['expiry']}, Minutes left: {d.get('minutes_until_expiry')}")
-            
-        print("\nRendering template with volunteer name and urgent donations")
-        print(f"Volunteer name: {volunteer['full_name']}")
-        print(f"Number of urgent donations: {len(urgent_donations)}")
+        print(f"Found {len(urgent_donations)} urgent donations with hotel contact details")
         
         return render_template('volunteer_dashboard.html',
-                              volunteer_name=volunteer['full_name'],
-                              urgent_donations=urgent_donations,
-                              current_time=current_time)
+                             volunteer_name=volunteer['full_name'],
+                             urgent_donations=urgent_donations,
+                             current_time=current_time)
                              
     except Exception as e:
-        print(f"ERROR in volunteer dashboard: {e}")
-        import traceback
-        print(traceback.format_exc())
+        print(f"Error in volunteer dashboard: {e}")
         flash('Error loading dashboard')
         return redirect(url_for('login'))
 
@@ -753,64 +733,6 @@ def hotel_all_requests():
         print(f"Error loading all requests: {e}")
         flash('Error loading requests')
         return redirect(url_for('hotel_dashboard'))
-
-@app.route('/accept_delivery/<donation_id>', methods=['POST'])
-def accept_delivery(donation_id):
-    if 'user_id' not in session or session['user_type'] != 'volunteer':
-        return redirect(url_for('login'))
-    
-    try:
-        # Get the volunteer details
-        volunteer = volunteers.find_one({'_id': ObjectId(session['user_id'])})
-        if not volunteer:
-            flash('Volunteer not found')
-            return redirect(url_for('volunteer_dashboard'))
-            
-        # Get the donation details
-        donation = donations.find_one({'_id': ObjectId(donation_id)})
-        if not donation:
-            flash('Donation not found')
-            return redirect(url_for('volunteer_dashboard'))
-            
-        # Get hotel details for phone number
-        hotel = hotels.find_one({'_id': ObjectId(donation['hotel_id'])})
-            
-        # Create a delivery request
-        delivery_request = {
-            'donation_id': str(donation_id),
-            'food_type': donation['food_type'],
-            'quantity': donation['quantity'],
-            'hotel_id': donation['hotel_id'],
-            'hotel_name': donation['hotel_name'],
-            'hotel_phone': hotel['phone'] if hotel else 'Not available',
-            'volunteer_id': str(session['user_id']),
-            'volunteer_name': volunteer['full_name'],
-            'volunteer_phone': volunteer['phone'],
-            'status': 'pending',
-            'type': 'delivery',  # To distinguish from organization requests
-            'requested_at': datetime.now()
-        }
-        
-        # Insert the delivery request
-        delivery_requests.insert_one(delivery_request)
-        
-        # Update donation status to indicate a pending delivery request
-        donations.update_one(
-            {'_id': ObjectId(donation_id)},
-            {'$set': {
-                'delivery_status': 'pending',
-                'volunteer_id': session['user_id'],
-                'volunteer_name': volunteer['full_name'],
-                'volunteer_phone': volunteer['phone']
-            }}
-        )
-        
-        flash('Delivery request created successfully!')
-    except Exception as e:
-        print(f"Error accepting delivery: {e}")
-        flash('Error accepting delivery. Please try again.')
-    
-    return redirect(url_for('volunteer_dashboard'))
 
 @app.route('/volunteer/requests')
 def volunteer_requests():
@@ -1239,6 +1161,41 @@ def verify_donation_request_otp(request_id):
         return jsonify({
             'success': False,
             'message': 'Error processing request'
+        }), 500
+
+@app.route('/delete_donation/<donation_id>', methods=['POST'])
+def delete_donation(donation_id):
+    if 'user_id' not in session or session['user_type'] != 'hotel':
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        # Find the donation
+        donation = donations.find_one({'_id': ObjectId(donation_id)})
+        
+        if not donation:
+            return jsonify({'success': False, 'message': 'Donation not found'}), 404
+            
+        # Verify the donation belongs to the logged-in hotel
+        if donation['hotel_id'] != str(session['user_id']):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+            
+        # Delete associated requests first
+        donation_requests.delete_many({'donation_id': str(donation_id)})
+        delivery_requests.delete_many({'donation_id': str(donation_id)})
+        
+        # Delete the donation
+        donations.delete_one({'_id': ObjectId(donation_id)})
+        
+        return jsonify({
+            'success': True,
+            'message': 'Donation deleted successfully'
+        })
+        
+    except Exception as e:
+        print(f"Error deleting donation: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Error deleting donation'
         }), 500
 
 if __name__ == '__main__':

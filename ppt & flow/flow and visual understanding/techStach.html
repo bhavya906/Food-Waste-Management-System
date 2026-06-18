@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Technology Stack &amp; Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.1;
+        }
+        .blob-cyan { background-color: #06b6d4; width: 600px; height: 600px; top: -200px; right: -100px; }
+        .blob-slate { background-color: #64748b; width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+        /* Tech Stack Cards */
+        .tech-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .tech-card:hover {
+            transform: translateX(5px);
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+
+        .icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Architecture Diagram Area */
+        .arch-container {
+            background: #f8fafc; /* Inner background for contrast */
+            border-radius: 20px;
+            position: relative;
+            height: 100%;
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .arch-grid {
+            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            opacity: 0.5;
+            position: absolute;
+            inset: 0;
+        }
+
+        /* Diagram Nodes */
+        .arch-node {
+            position: absolute;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 2px solid;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+            width: 140px;
+        }
+
+        .node-label {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1e293b;
+            margin-top: 0.5rem;
+        }
+        
+        .node-sub {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        /* Specific Node Styles */
+        .node-client { border-color: #f59e0b; top: 50%; left: 50px; transform: translateY(-50%); }
+        .node-server { border-color: #3b82f6; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 220px; justify-content: flex-start; background: rgba(255, 255, 255, 0.9); }
+        .node-db { border-color: #10b981; top: 50px; right: 50px; }
+        .node-smtp { border-color: #8b5cf6; bottom: 50px; right: 50px; }
+
+        /* Inner Server Components */
+        .server-component {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 6px;
+            width: 90%;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        
+        .server-icon {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #3b82f6;
+            margin-right: 8px;
+        }
+
+        /* Connectors */
+        .arch-svg {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .conn-path {
+            fill: none;
+            stroke: #94a3b8;
+            stroke-width: 2;
+            stroke-dasharray: 6;
+            animation: flow 30s linear infinite;
+        }
+
+        @keyframes flow {
+            to { stroke-dashoffset: -100; }
+        }
+
+        /* Tech Icon Colors */
+        .tech-python { background-color: #eff6ff; color: #2563eb; }
+        .tech-html { background-color: #fff7ed; color: #ea580c; }
+        .tech-mongo { background-color: #ecfdf5; color: #059669; }
+        .tech-security { background-color: #f5f3ff; color: #7c3aed; }
+        .tech-smtp { background-color: #fefce8; color: #ca8a04; }
+
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Elements -->
+<div class="shape-blob blob-cyan"></div>
+<div class="shape-blob blob-slate"></div>
+<!-- Header -->
+<div class="relative z-20 pt-8 px-16 pb-4">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-cyan-600 rounded-full"></div>
+<p class="text-cyan-600 font-bold uppercase tracking-wider text-sm">System Infrastructure</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+            Technology Stack &amp; <span class="text-cyan-600">Architecture</span>
+</h1>
+</div>
+<!-- Main Content Grid -->
+<div class="flex-1 px-16 pb-8 grid grid-cols-12 gap-10">
+<!-- Left Column: Tech Stack -->
+<div class="col-span-4 flex flex-col justify-center gap-4 z-20">
+<h3 class="font-heading font-bold text-gray-700 text-lg mb-2">Core Components</h3>
+<!-- Backend -->
+<div class="tech-card">
+<div class="icon-wrapper tech-python">
+<i class="fa-brands fa-python"></i>
+</div>
+<div>
+<h4 class="font-bold text-gray-800 text-sm">Backend Framework</h4>
+<p class="text-xs text-gray-500 mt-1">Flask (Python Microframework) for robust API handling and routing.</p>
+</div>
+</div>
+<!-- Frontend -->
+<div class="tech-card">
+<div class="icon-wrapper tech-html">
+<i class="fa-brands fa-html5"></i>
+</div>
+<div>
+<h4 class="font-bold text-gray-800 text-sm">Frontend Interface</h4>
+<p class="text-xs text-gray-500 mt-1">HTML5, CSS3, Jinja2 Templating for dynamic, responsive UI.</p>
+</div>
+</div>
+<!-- Database -->
+<div class="tech-card">
+<div class="icon-wrapper tech-mongo">
+<i class="fa-solid fa-leaf"></i>
+</div>
+<div>
+<h4 class="font-bold text-gray-800 text-sm">Database System</h4>
+<p class="text-xs text-gray-500 mt-1">MongoDB (NoSQL) for flexible document storage of donations.</p>
+</div>
+</div>
+<!-- Services -->
+<div class="tech-card">
+<div class="icon-wrapper tech-smtp">
+<i class="fa-solid fa-envelope"></i>
+</div>
+<div>
+<h4 class="font-bold text-gray-800 text-sm">Communication</h4>
+<p class="text-xs text-gray-500 mt-1">SMTP Protocol for real-time OTP delivery and notifications.</p>
+</div>
+</div>
+<!-- Security -->
+<div class="tech-card">
+<div class="icon-wrapper tech-security">
+<i class="fa-solid fa-shield-halved"></i>
+</div>
+<div>
+<h4 class="font-bold text-gray-800 text-sm">Security Layer</h4>
+<p class="text-xs text-gray-500 mt-1">Password Hashing (Bcrypt), RBAC, Input Sanitization.</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Architecture Diagram -->
+<div class="col-span-8 relative z-10">
+<div class="bg-white p-2 rounded-3xl shadow-xl h-full border border-gray-100">
+<div class="arch-container">
+<div class="arch-grid"></div>
+<!-- Connectors -->
+<svg class="arch-svg">
+<defs>
+<marker id="arrow-arch" markerheight="7" markerwidth="10" orient="auto" refx="9" refy="3.5">
+<polygon fill="#94a3b8" points="0 0, 10 3.5, 0 7"></polygon>
+</marker>
+</defs>
+<!-- Client to Server -->
+<path class="conn-path" d="M 170 240 L 370 240" marker-end="url(#arrow-arch)"></path>
+<path class="conn-path" d="M 370 260 L 170 260" marker-end="url(#arrow-arch)"></path> <!-- Return -->
+<!-- Server to DB -->
+<path class="conn-path" d="M 500 240 L 500 120 L 580 120" marker-end="url(#arrow-arch)"></path>
+<path class="conn-path" d="M 580 140 L 520 140 L 520 240" marker-end="url(#arrow-arch)"></path> <!-- Return -->
+<!-- Server to SMTP -->
+<path class="conn-path" d="M 500 360 L 500 400 L 580 400" marker-end="url(#arrow-arch)"></path>
+</svg>
+<!-- Node 1: Client -->
+<div class="arch-node node-client">
+<div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2">
+<i class="fa-solid fa-laptop text-orange-500 text-xl"></i>
+</div>
+<div class="node-label">Client Browser</div>
+<div class="node-sub">HTML / CSS / JS</div>
+</div>
+<!-- Node 2: Server (Flask App) -->
+<div class="arch-node node-server">
+<div class="flex items-center w-full border-b pb-2 mb-2 border-blue-100">
+<i class="fa-brands fa-python text-blue-600 text-xl mr-2"></i>
+<span class="font-bold text-blue-800 text-sm">Web Application Server</span>
+</div>
+<!-- Sub Components -->
+<div class="server-component">
+<div class="server-icon"><i class="fa-solid fa-route"></i></div>
+<div class="text-[10px] text-blue-900 font-medium">Route Handlers (Views)</div>
+</div>
+<div class="server-component">
+<div class="server-icon"><i class="fa-solid fa-code"></i></div>
+<div class="text-[10px] text-blue-900 font-medium">Jinja2 Templates</div>
+</div>
+<div class="server-component">
+<div class="server-icon"><i class="fa-solid fa-gears"></i></div>
+<div class="text-[10px] text-blue-900 font-medium">Business Logic / Models</div>
+</div>
+<div class="server-component bg-purple-50 border-purple-100">
+<div class="server-icon text-purple-600"><i class="fa-solid fa-lock"></i></div>
+<div class="text-[10px] text-purple-900 font-medium">Auth Middleware</div>
+</div>
+</div>
+<!-- Node 3: Database -->
+<div class="arch-node node-db">
+<div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
+<i class="fa-solid fa-database text-green-600 text-xl"></i>
+</div>
+<div class="node-label">MongoDB</div>
+<div class="node-sub">Donations &amp; Users</div>
+</div>
+<!-- Node 4: SMTP -->
+<div class="arch-node node-smtp">
+<div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
+<i class="fa-solid fa-paper-plane text-purple-600 text-xl"></i>
+</div>
+<div class="node-label">SMTP Server</div>
+<div class="node-sub">OTP Delivery</div>
+</div>
+<!-- Protocol Badges -->
+<div class="absolute bg-white px-2 py-0.5 rounded text-[9px] font-bold text-gray-500 border shadow-sm" style="top: 220px; left: 250px;">HTTPS / REST</div>
+<div class="absolute bg-white px-2 py-0.5 rounded text-[9px] font-bold text-gray-500 border shadow-sm" style="top: 150px; left: 520px;">PyMongo</div>
+<div class="absolute bg-white px-2 py-0.5 rounded text-[9px] font-bold text-gray-500 border shadow-sm" style="top: 380px; left: 520px;">SMTP / TLS</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

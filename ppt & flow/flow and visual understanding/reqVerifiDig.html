@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Request &amp; Verification System</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Background Elements */
+        .bg-grid {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.3;
+        }
+
+        /* State Node Styling */
+        .state-node {
+            position: absolute;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 10;
+            width: 180px;
+            text-align: center;
+            transition: transform 0.2s;
+            border-width: 2px;
+            border-style: solid;
+        }
+
+        .state-node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .node-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .node-label {
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            color: #1e293b;
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+
+        .node-sub {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        /* State Specific Colors */
+        .node-available { border-color: #3b82f6; background-color: #eff6ff; }
+        .node-available .node-icon { color: #3b82f6; }
+        
+        .node-requested { border-color: #f59e0b; border-style: dashed; }
+        .node-requested .node-icon { color: #f59e0b; }
+
+        .node-accepted { border-color: #10b981; }
+        .node-accepted .node-icon { color: #10b981; }
+
+        .node-rejected { border-color: #ef4444; }
+        .node-rejected .node-icon { color: #ef4444; }
+
+        .node-transit { border-color: #8b5cf6; }
+        .node-transit .node-icon { color: #8b5cf6; }
+
+        .node-verified { border-color: #0ea5e9; }
+        .node-verified .node-icon { color: #0ea5e9; }
+
+        .node-completed { border-color: #059669; background-color: #ecfdf5; border-width: 3px; }
+        .node-completed .node-icon { color: #059669; }
+
+        /* Connector Lines SVG */
+        .connector-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .connector-path {
+            fill: none;
+            stroke: #cbd5e1;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .path-dashed { stroke-dasharray: 6; }
+        .path-success { stroke: #10b981; }
+        .path-reject { stroke: #ef4444; opacity: 0.6; }
+
+        /* Visibility Legend Box */
+        .visibility-box {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 20px;
+            border: 1px solid #e2e8f0;
+            z-index: 20;
+        }
+        .vis-item { display: flex; align-items: center; font-size: 0.85rem; color: #475569; font-weight: 500; }
+        .vis-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Grid -->
+<div class="absolute inset-0 bg-grid"></div>
+<!-- Header -->
+<div class="relative z-20 pt-8 px-16 pb-2">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-blue-600 rounded-full"></div>
+<p class="text-blue-600 font-bold uppercase tracking-wider text-sm">State Management</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+            Request &amp; <span class="text-blue-600">Verification System</span>
+</h1>
+<p class="text-gray-500 mt-2 text-lg">Real-time state tracking from donation creation to final verification</p>
+</div>
+<!-- Main Diagram Area -->
+<div class="relative flex-1 w-full h-full overflow-visible mt-4">
+<!-- SVG Connectors -->
+<svg class="connector-layer">
+<defs>
+<marker id="arrowhead" markerheight="7" markerwidth="10" orient="auto" refx="9" refy="3.5">
+<polygon fill="#94a3b8" points="0 0, 10 3.5, 0 7"></polygon>
+</marker>
+<marker id="arrowhead-success" markerheight="7" markerwidth="10" orient="auto" refx="9" refy="3.5">
+<polygon fill="#10b981" points="0 0, 10 3.5, 0 7"></polygon>
+</marker>
+<marker id="arrowhead-reject" markerheight="7" markerwidth="10" orient="auto" refx="9" refy="3.5">
+<polygon fill="#ef4444" points="0 0, 10 3.5, 0 7"></polygon>
+</marker>
+</defs>
+<!-- Flow Paths -->
+<!-- Available to Requested -->
+<path class="connector-path" d="M 190 280 L 280 280" marker-end="url(#arrowhead)"></path>
+<!-- Requested to Accepted/Rejected Split -->
+<path class="connector-path" d="M 460 280 L 510 280 L 510 180 L 550 180" marker-end="url(#arrowhead-success)"></path> <!-- To Accept -->
+<path class="connector-path path-reject" d="M 460 280 L 510 280 L 510 380 L 550 380" marker-end="url(#arrowhead-reject)"></path> <!-- To Reject -->
+<!-- Accepted to Transit -->
+<path class="connector-path path-success" d="M 730 180 L 780 180" marker-end="url(#arrowhead-success)"></path>
+<!-- Transit to Verified -->
+<path class="connector-path path-success" d="M 960 180 L 1010 180 L 1010 240" marker-end="url(#arrowhead-success)"></path>
+<!-- Verified to Completed -->
+<path class="connector-path path-success" d="M 1010 340 L 1010 380" marker-end="url(#arrowhead-success)"></path>
+</svg>
+<!-- State Nodes -->
+<!-- Start: Available -->
+<div class="state-node node-available" style="top: 230px; left: 60px;">
+<i class="fa-solid fa-utensils node-icon"></i>
+<span class="node-label">Available</span>
+<span class="node-sub">Listed by Hotel</span>
+</div>
+<!-- Step 2: Requested -->
+<div class="state-node node-requested" style="top: 230px; left: 280px;">
+<i class="fa-solid fa-hand-holding-hand node-icon"></i>
+<span class="node-label">Requested</span>
+<span class="node-sub">Pending Review</span>
+</div>
+<!-- Step 3A: Accepted -->
+<div class="state-node node-accepted" style="top: 130px; left: 550px;">
+<i class="fa-solid fa-check-circle node-icon"></i>
+<span class="node-label">Accepted</span>
+<span class="node-sub">OTP Generated</span>
+</div>
+<!-- Step 3B: Rejected -->
+<div class="state-node node-rejected" style="top: 330px; left: 550px;">
+<i class="fa-solid fa-circle-xmark node-icon"></i>
+<span class="node-label">Rejected</span>
+<span class="node-sub">Donation Closed</span>
+</div>
+<!-- Step 4: In-Transit -->
+<div class="state-node node-transit" style="top: 130px; left: 780px;">
+<i class="fa-solid fa-truck-fast node-icon"></i>
+<span class="node-label">In-Transit</span>
+<span class="node-sub">Volunteer Pickup</span>
+</div>
+<!-- Step 5: OTP Verified -->
+<div class="state-node node-verified" style="top: 240px; left: 920px;">
+<i class="fa-solid fa-shield-halved node-icon"></i>
+<span class="node-label">OTP Verified</span>
+<span class="node-sub">Authentication</span>
+</div>
+<!-- Step 6: Completed -->
+<div class="state-node node-completed" style="top: 380px; left: 920px;">
+<i class="fa-solid fa-flag-checkered node-icon"></i>
+<span class="node-label">Completed</span>
+<span class="node-sub">Final Status</span>
+</div>
+<!-- Context/Actor Labels -->
+<div class="absolute text-xs font-bold text-gray-400 uppercase tracking-widest transform -rotate-90" style="left: 20px; top: 280px;">Hotel Action</div>
+<div class="absolute text-xs font-bold text-gray-400 uppercase tracking-widest transform -rotate-90" style="left: 240px; top: 280px;">NGO Action</div>
+<div class="absolute text-xs font-bold text-gray-400 uppercase tracking-widest transform -rotate-90" style="left: 740px; top: 180px;">Volunteer</div>
+<div class="absolute text-xs font-bold text-gray-400 uppercase tracking-widest transform -rotate-90" style="left: 880px; top: 300px;">System</div>
+</div>
+<!-- Visibility Tracking Footer -->
+<div class="visibility-box">
+<div class="text-xs font-bold text-gray-400 uppercase mr-2" style="align-self: center;">Visibility Tracking:</div>
+<div class="vis-item"><span class="vis-dot bg-blue-500"></span>Hotel View</div>
+<div class="vis-item"><span class="vis-dot bg-green-500"></span>NGO View</div>
+<div class="vis-item"><span class="vis-dot bg-purple-500"></span>Volunteer View</div>
+<div class="vis-item"><span class="vis-dot bg-red-500"></span>Admin Audit</div>
+</div>
+</div>
+</body>
+</html>

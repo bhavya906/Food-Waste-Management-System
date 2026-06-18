@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Objectives &amp; Goals</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Abstract Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.1;
+        }
+        .blob-green { background-color: #10b981; width: 600px; height: 600px; top: -200px; right: -100px; }
+        .blob-blue { background-color: #3b82f6; width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+        /* Card Styling */
+        .goal-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .goal-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: transparent;
+            transition: background-color 0.3s ease;
+        }
+
+        .goal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .goal-card:hover::after {
+            background-color: currentColor; 
+        }
+
+        /* Specific Card Colors using classes for dynamic coloring of the bottom border via currentColor is tricky in pure CSS without vars, 
+           so we'll use specific classes */
+        .card-green:hover::after { background-color: #10b981; }
+        .card-blue:hover::after { background-color: #3b82f6; }
+        .card-orange:hover::after { background-color: #f97316; }
+        .card-purple:hover::after { background-color: #8b5cf6; }
+        .card-red:hover::after { background-color: #ef4444; }
+
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Blobs -->
+<div class="shape-blob blob-green"></div>
+<div class="shape-blob blob-blue"></div>
+<!-- Header -->
+<div class="relative z-10 pt-10 px-16 pb-2">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-blue-600 rounded-full"></div>
+<p class="text-blue-600 font-bold uppercase tracking-wider text-sm">Project Mission</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+                Objectives &amp; <span class="text-blue-600">Goals</span>
+</h1>
+<p class="text-gray-500 mt-2 text-lg max-w-2xl">
+                Our primary mission is to create a sustainable ecosystem where technology bridges the gap between surplus food and hunger.
+            </p>
+</div>
+<!-- Main Content Grid -->
+<div class="relative z-10 flex-1 px-16 py-6 pb-12 flex flex-col justify-center">
+<!-- Top Row: 3 Cards -->
+<div class="grid grid-cols-3 gap-6 mb-6">
+<!-- Goal 1 -->
+<div class="goal-card card-green">
+<div class="icon-box bg-green-100 text-green-600">
+<i class="fa-solid fa-leaf"></i>
+</div>
+<h3 class="font-heading text-xl font-bold text-gray-800 mb-2">Reduce Food Waste</h3>
+<p class="text-gray-600 text-sm leading-relaxed">
+                        Minimize the massive daily food wastage in hotels by identifying surplus food and channeling it effectively before expiry.
+                    </p>
+</div>
+<!-- Goal 2 -->
+<div class="goal-card card-blue">
+<div class="icon-box bg-blue-100 text-blue-600">
+<i class="fa-solid fa-handshake"></i>
+</div>
+<h3 class="font-heading text-xl font-bold text-gray-800 mb-2">Connect Stakeholders</h3>
+<p class="text-gray-600 text-sm leading-relaxed">
+                        Create a unified platform to seamlessly connect Food Donors (Hotels), NGOs, and Volunteers for rapid coordination.
+                    </p>
+</div>
+<!-- Goal 3 -->
+<div class="goal-card card-orange">
+<div class="icon-box bg-orange-100 text-orange-600">
+<i class="fa-solid fa-shield-halved"></i>
+</div>
+<h3 class="font-heading text-xl font-bold text-gray-800 mb-2">Verified Distribution</h3>
+<p class="text-gray-600 text-sm leading-relaxed">
+                        Ensure safety and authenticity through a rigorous vetting process for all registered organizations and volunteers.
+                    </p>
+</div>
+</div>
+<!-- Bottom Row: 2 Cards (Centered) -->
+<div class="flex justify-center gap-6">
+<!-- Goal 4 -->
+<div class="goal-card card-purple w-1/3">
+<div class="icon-box bg-purple-100 text-purple-600">
+<i class="fa-solid fa-location-crosshairs"></i>
+</div>
+<h3 class="font-heading text-xl font-bold text-gray-800 mb-2">Real-time Visibility</h3>
+<p class="text-gray-600 text-sm leading-relaxed">
+                        Provide live tracking of food availability and delivery status to ensure timely pickups and prevent spoilage.
+                    </p>
+</div>
+<!-- Goal 5 -->
+<div class="goal-card card-red w-1/3">
+<div class="icon-box bg-red-100 text-red-600">
+<i class="fa-solid fa-lock"></i>
+</div>
+<h3 class="font-heading text-xl font-bold text-gray-800 mb-2">Secure Transactions</h3>
+<p class="text-gray-600 text-sm leading-relaxed">
+                        Implement OTP-based verification for handovers to maintain a secure audit trail of every donation made.
+                    </p>
+</div>
+</div>
+</div>
+<!-- Footer Strip -->
+<div class="absolute bottom-0 w-full h-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500"></div>
+</div>
+</body>
+</html>

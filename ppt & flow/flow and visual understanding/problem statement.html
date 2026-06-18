@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Problem Statement</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Abstract Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.12;
+        }
+        .blob-red { background-color: #ef4444; width: 600px; height: 600px; top: -100px; right: -200px; }
+        .blob-orange { background-color: #f97316; width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 6px solid #ef4444; /* Red for urgency */
+            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .problem-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .problem-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.75rem;
+            width: 8px;
+            height: 8px;
+            background-color: #f97316;
+            border-radius: 50%;
+        }
+
+        .problem-icon-bg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background-color: #fff1f2; /* Light red */
+            color: #be123c;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            margin-right: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="slide-container bg-white">
+<!-- Background Blobs -->
+<div class="shape-blob blob-red"></div>
+<div class="shape-blob blob-orange"></div>
+<!-- Header -->
+<div class="relative z-10 pt-10 px-16 pb-6">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-red-500 rounded-full"></div>
+<p class="text-red-500 font-bold uppercase tracking-wider text-sm">The Challenge</p>
+</div>
+<h1 class="font-heading text-5xl font-bold text-gray-900 leading-tight">
+                Problem <span class="text-blue-600">Statement</span>
+</h1>
+</div>
+<!-- Main Content -->
+<div class="relative z-10 flex px-16 h-full pb-12">
+<!-- Left Column: Detailed Problems -->
+<div class="w-7/12 pr-12 flex flex-col justify-center">
+<p class="text-xl text-gray-600 mb-10 leading-relaxed font-medium">
+                    Despite surplus food production in the hospitality sector, a significant disconnect prevents this resource from reaching those in need.
+                </p>
+<div class="space-y-8">
+<div class="flex items-start">
+<div class="problem-icon-bg shadow-sm">
+<i class="fa-solid fa-trash-can"></i>
+</div>
+<div>
+<h3 class="font-heading text-xl font-bold text-gray-800 mb-2">Massive Food Wastage</h3>
+<p class="text-gray-600 leading-relaxed">
+                                Large hotels and restaurants discard vast amounts of edible food daily due to a lack of immediate disposal channels, contributing to environmental degradation.
+                            </p>
+</div>
+</div>
+<div class="flex items-start">
+<div class="problem-icon-bg shadow-sm" style="background-color: #eff6ff; color: #2563eb;">
+<i class="fa-solid fa-link-slash"></i>
+</div>
+<div>
+<h3 class="font-heading text-xl font-bold text-gray-800 mb-2">Inefficient Connectivity</h3>
+<p class="text-gray-600 leading-relaxed">
+                                There is no centralized platform to connect donors with NGOs and volunteers in real-time. Communication gaps lead to missed donation opportunities.
+                            </p>
+</div>
+</div>
+<div class="flex items-start">
+<div class="problem-icon-bg shadow-sm" style="background-color: #fff7ed; color: #ea580c;">
+<i class="fa-solid fa-hourglass-end"></i>
+</div>
+<div>
+<h3 class="font-heading text-xl font-bold text-gray-800 mb-2">Timing &amp; Verification</h3>
+<p class="text-gray-600 leading-relaxed">
+                                Without a streamlined system, coordinating pickups before food spoils is difficult. Ensuring food safety and preventing misuse remains a major challenge.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Statistics & Visuals -->
+<div class="w-5/12 flex flex-col justify-center space-y-6">
+<!-- Stat Card 1 -->
+<div class="stat-card p-6 rounded-r-xl">
+<div class="flex justify-between items-start mb-2">
+<span class="text-gray-500 font-medium text-sm uppercase">Global Impact</span>
+<i class="fa-solid fa-chart-pie text-red-400"></i>
+</div>
+<div class="flex items-baseline">
+<span class="font-heading text-5xl font-extrabold text-gray-900">1/3</span>
+<span class="ml-2 text-xl text-gray-600 font-medium">of food produced</span>
+</div>
+<p class="text-gray-500 mt-2 text-sm">is wasted annually while millions go hungry.</p>
+</div>
+<!-- Stat Card 2 -->
+<div class="stat-card p-6 rounded-r-xl" style="border-left-color: #f97316;">
+<div class="flex justify-between items-start mb-2">
+<span class="text-gray-500 font-medium text-sm uppercase">Hospitality Sector</span>
+<i class="fa-solid fa-hotel text-orange-400"></i>
+</div>
+<div class="flex items-baseline">
+<span class="font-heading text-5xl font-extrabold text-gray-900">40%</span>
+<span class="ml-2 text-xl text-gray-600 font-medium">waste generated</span>
+</div>
+<p class="text-gray-500 mt-2 text-sm">comes from consumer-facing businesses like hotels.</p>
+</div>
+<!-- Stat Card 3 -->
+<div class="stat-card p-6 rounded-r-xl" style="border-left-color: #2563eb;">
+<div class="flex justify-between items-start mb-2">
+<span class="text-gray-500 font-medium text-sm uppercase">The Gap</span>
+<i class="fa-solid fa-people-arrows text-blue-400"></i>
+</div>
+<div class="flex items-baseline">
+<span class="font-heading text-5xl font-extrabold text-gray-900">No</span>
+<span class="ml-2 text-xl text-gray-600 font-medium">Unified Platform</span>
+</div>
+<p class="text-gray-500 mt-2 text-sm">Current methods rely on manual phone calls and texts.</p>
+</div>
+</div>
+</div>
+<!-- Footer Strip -->
+<div class="absolute bottom-0 w-full h-3 bg-gradient-to-r from-red-500 to-orange-500"></div>
+</div>
+</body>
+</html>

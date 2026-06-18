@@ -55,24 +55,20 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {% if urgent_donations %}
                         {% for donation in urgent_donations %}
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-red-500">
+                        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition duration-200">
                             <div class="p-6">
                                 <div class="flex justify-between items-start mb-4">
-                                    <h3 class="text-xl font-semibold text-gray-800">{{ donation.food_type }}</h3>
-                                    <span class="px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
-                                        {{ donation.minutes_until_expiry|round|int }} mins left
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ donation.food_type }}</h3>
+                                    <span class="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                                        Available
                                     </span>
                                 </div>
-                                
-                                <div class="space-y-4">
-                                    <!-- Donation Details -->
-                                    <div class="space-y-2 text-gray-600">
-                                        <p><i class="fas fa-utensils mr-2"></i>{{ donation.quantity }} servings</p>
-                                        <p><i class="fas fa-clock mr-2"></i>Expires: {{ donation.expiry.strftime('%I:%M %p') }}</p>
-                                    </div>
-
+                                <div class="space-y-2 text-gray-600">
+                                    <p><i class="fas fa-utensils mr-2"></i>{{ donation.quantity }} servings</p>
+                                    <p><i class="fas fa-clock mr-2"></i>Expires: {{ donation.expiry.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    
                                     <!-- Pickup Details -->
-                                    <div class="bg-blue-50 p-3 rounded-lg">
+                                    <div class="bg-blue-50 p-3 rounded-lg mt-3">
                                         <h4 class="font-semibold text-blue-800 mb-2">Pickup From:</h4>
                                         <p class="text-blue-700">
                                             <i class="fas fa-building mr-2"></i>{{ donation.hotel_name }}
@@ -80,16 +76,14 @@
                                         <p class="text-blue-700 mt-1">
                                             <i class="fas fa-phone mr-2"></i>{{ donation.hotel_phone }}
                                         </p>
+                                        {% if donation.hotel_details.address %}
+                                        <p class="text-blue-700 mt-1">
+                                            <i class="fas fa-map-marker-alt mr-2"></i>{{ donation.hotel_details.address }}
+                                        </p>
+                                        {% endif %}
                                     </div>
-
-                                    <!-- Accept Button -->
-                                    <form method="POST" action="{{ url_for('accept_delivery', donation_id=donation._id) }}" class="mt-4">
-                                        <button type="submit" 
-                                                class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200">
-                                            Accept Donation
-                                        </button>
-                                    </form>
                                 </div>
+                                <!-- Remove the Accept Button Form -->
                             </div>
                         </div>
                         {% endfor %}

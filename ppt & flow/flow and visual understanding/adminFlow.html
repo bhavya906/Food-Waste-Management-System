@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Workflow</title>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        .slide-container { width: 1280px; height: 720px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .font-heading { font-family: 'Poppins', sans-serif; }
+        
+        /* Abstract Background Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.15;
+        }
+        .blob-blue { background-color: #3b82f6; width: 600px; height: 600px; top: -200px; right: -100px; }
+        .blob-indigo { background-color: #6366f1; width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+        /* Swimlane Container */
+        .swimlane-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            padding: 0 4rem 2rem 4rem;
+            flex: 1;
+            position: relative;
+            z-index: 10;
+        }
+
+        .swimlane {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .swimlane-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .swimlane-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 1rem;
+        }
+
+        /* Flow Cards */
+        .flow-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border-left: 5px solid;
+            margin-bottom: 1.5rem;
+            position: relative;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .flow-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .card-content h4 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .card-content p {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin: 0.25rem 0 0 0;
+        }
+
+        /* Lane Specific Colors - Admin Theme (Blue/Indigo/Slate) */
+        .lane-1 .swimlane-title { color: #2563eb; } /* Blue */
+        .lane-1 .swimlane-header { border-color: #dbeafe; }
+        .lane-1 .flow-card { border-color: #2563eb; }
+        .lane-1 .card-icon { background-color: #eff6ff; color: #2563eb; }
+
+        .lane-2 .swimlane-title { color: #4f46e5; } /* Indigo */
+        .lane-2 .swimlane-header { border-color: #e0e7ff; }
+        .lane-2 .flow-card { border-color: #4f46e5; }
+        .lane-2 .card-icon { background-color: #eef2ff; color: #4f46e5; }
+
+        .lane-3 .swimlane-title { color: #475569; } /* Slate */
+        .lane-3 .swimlane-header { border-color: #e2e8f0; }
+        .lane-3 .flow-card { border-color: #475569; }
+        .lane-3 .card-icon { background-color: #f1f5f9; color: #475569; }
+
+        /* SVG Connectors */
+        .connector-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .connector-path {
+            fill: none;
+            stroke: #cbd5e1;
+            stroke-width: 2;
+            stroke-dasharray: 6;
+            animation: flowDash 30s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -100; }
+        }
+        
+        /* Action buttons simulation */
+        .btn-sim {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-top: 4px;
+            margin-right: 4px;
+        }
+        .btn-approve { background-color: #dcfce7; color: #16a34a; }
+        .btn-reject { background-color: #fee2e2; color: #ef4444; }
+        .btn-deactivate { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+    </style>
+</head>
+<body>
+<div class="slide-container bg-gray-50">
+<!-- Background Blobs -->
+<div class="shape-blob blob-blue"></div>
+<div class="shape-blob blob-indigo"></div>
+<!-- Header -->
+<div class="relative z-10 pt-10 px-16 pb-6">
+<div class="flex items-center space-x-3 mb-2">
+<div class="h-1 w-12 bg-blue-600 rounded-full"></div>
+<p class="text-blue-600 font-bold uppercase tracking-wider text-sm">System Administration</p>
+</div>
+<h1 class="font-heading text-4xl font-bold text-gray-900 leading-tight">
+            Admin <span class="text-blue-600">Flow</span>
+</h1>
+</div>
+<!-- Swimlane Diagram -->
+<div class="swimlane-container">
+<!-- SVG Connections Layer -->
+<svg class="connector-svg">
+<defs>
+<marker id="arrow" markerheight="10" markerunits="strokeWidth" markerwidth="10" orient="auto" refx="9" refy="3">
+<path d="M0,0 L0,6 L9,3 z" fill="#cbd5e1"></path>
+</marker>
+</defs>
+<!-- Lane 1 (Login -> Dashboard) -->
+<path d="M 195 240 L 195 280" marker-end="url(#arrow)" stroke="#cbd5e1" stroke-width="2"></path>
+<!-- Lane 1 (Dashboard) -> Lane 2 (View Users) -->
+<path class="connector-path" d="M 355 330 L 380 330 L 380 200 L 450 200" marker-end="url(#arrow)"></path>
+<!-- Lane 2 (View Users -> Approve/Reject) -->
+<path d="M 600 240 L 600 270" marker-end="url(#arrow)" stroke="#cbd5e1" stroke-width="2"></path>
+<!-- Lane 2 (Approve/Reject -> Deactivate) -->
+<path d="M 600 350 L 600 380" marker-end="url(#arrow)" stroke="#cbd5e1" stroke-width="2"></path>
+<!-- Lane 1 (Dashboard) -> Lane 3 (Monitor) - Branching -->
+<path class="connector-path" d="M 355 330 L 380 330 L 380 500 L 860 500 L 860 250" marker-end="url(#arrow)"></path>
+<!-- Alternative simplistic branch: Lane 2 (User Mgmt) is main flow, Lane 3 is parallel -->
+</svg>
+<!-- Lane 1: Access Control -->
+<div class="swimlane lane-1">
+<div class="swimlane-header">
+<div class="swimlane-title">1. Access Control</div>
+</div>
+<!-- Step 1: Login -->
+<div class="flow-card" style="margin-top: 1rem;">
+<div class="card-icon">
+<i class="fa-solid fa-user-shield"></i>
+</div>
+<div class="card-content">
+<h4>Admin Login</h4>
+<p>Secure credentials</p>
+</div>
+</div>
+<!-- Step 2: Dashboard -->
+<div class="flow-card" style="margin-top: 2rem;">
+<div class="card-icon">
+<i class="fa-solid fa-table-columns"></i>
+</div>
+<div class="card-content">
+<h4>Admin Dashboard</h4>
+<p>Central overview hub</p>
+</div>
+</div>
+</div>
+<!-- Lane 2: User Management -->
+<div class="swimlane lane-2">
+<div class="swimlane-header">
+<div class="swimlane-title">2. User Management</div>
+</div>
+<!-- Step 3: View Users -->
+<div class="flow-card" style="margin-top: 1rem;">
+<div class="card-icon">
+<i class="fa-solid fa-users-viewfinder"></i>
+</div>
+<div class="card-content">
+<h4>View Users</h4>
+<p>Hotels, NGOs, Volunteers</p>
+</div>
+</div>
+<!-- Step 4: Approve/Reject -->
+<div class="flow-card">
+<div class="card-icon">
+<i class="fa-solid fa-file-circle-check"></i>
+</div>
+<div class="card-content">
+<h4>Review Profile</h4>
+<div>
+<span class="btn-sim btn-approve">Approve</span>
+<span class="btn-sim btn-reject">Reject</span>
+</div>
+</div>
+</div>
+<!-- Step 5: Deactivate -->
+<div class="flow-card">
+<div class="card-icon">
+<i class="fa-solid fa-user-slash"></i>
+</div>
+<div class="card-content">
+<h4>Deactivate</h4>
+<p>Suspend malicious users</p>
+</div>
+</div>
+</div>
+<!-- Lane 3: System Oversight -->
+<div class="swimlane lane-3">
+<div class="swimlane-header">
+<div class="swimlane-title">3. System Oversight</div>
+</div>
+<!-- Step 6: Monitor Activity -->
+<div class="flow-card" style="margin-top: 1rem;">
+<div class="card-icon">
+<i class="fa-solid fa-chart-line"></i>
+</div>
+<div class="card-content">
+<h4>Monitor Activity</h4>
+<p>Track system usage logs</p>
+</div>
+</div>
+<!-- Step 7: System Health -->
+<div class="flow-card bg-slate-50 border-slate-200 shadow-none" style="margin-top: 2rem;">
+<div class="card-icon text-slate-600 bg-white">
+<i class="fa-solid fa-server"></i>
+</div>
+<div class="card-content">
+<h4 class="text-slate-700">System Health</h4>
+<p class="text-slate-500">Uptime &amp; Security</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Strip -->
+<div class="absolute bottom-0 w-full h-2 bg-gradient-to-r from-blue-300 via-blue-600 to-indigo-700"></div>
+</div>
+</body>
+</html>
